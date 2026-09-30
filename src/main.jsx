@@ -73,6 +73,7 @@ function App() {
   const [actionPending, setActionPending] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
+  const [loginPending, setLoginPending] = useState(false);
   const [page, setPage] = useState("dashboard");
   const [participants, setParticipants] = useState([]);
   const [meetings, setMeetings] = useState([]);
@@ -101,10 +102,11 @@ function App() {
   const [ideaForm, setIdeaForm] = useState({ text: "", author: "" });
 
   useEffect(() => {
+    if (!loggedIn) return;
+    setLoadingData(true);
     let active = true;
     async function loadApiData() {
       try {
-        await api.health();
         const [remoteParticipants, remoteMeetings, remoteNotes, remoteFinance, remoteIdeas] = await Promise.all([
           api.participants.list(), api.meetings.list(), api.notes.list(), api.finance.get(), api.ideas.list()
         ]);
@@ -130,14 +132,14 @@ function App() {
       } catch (error) {
         if (!active) return;
         setApiOnline(false);
-        setApiMessage("Não foi possível carregar os dados do servidor. Atualize a página para tentar novamente. Alterações feitas agora serão temporárias.");
+        setApiMessage(`${error.message} Atualize a página para tentar novamente. Alterações feitas agora serão temporárias.`);
       } finally {
         if (active) setLoadingData(false);
       }
     }
     loadApiData();
     return () => { active = false; };
-  }, []);
+  }, [loggedIn]);
 
   const currentMeeting = meetings.find(m => m.id === selectedMeeting) || meetings[meetings.length - 1];
   const currentParticipants = currentMeeting
@@ -280,14 +282,19 @@ function App() {
 
   async function handleLogin(e) {
     e.preventDefault();
-    if (loadingData) return;
+    if (loginPending) return;
     if (!loginForm.email.trim() || !loginForm.password.trim()) { setLoginError("Preencha o usuário e a senha para entrar."); return; }
-    if (apiOnline) {
-      try { await api.login(loginForm); }
-      catch (error) { setLoginError(error.message?.replace(/e-?mail/gi, "usuário") || "Usuário ou senha incorretos."); return; }
+    setLoginPending(true);
+    setLoginError("");
+    try {
+      await api.login({ ...loginForm, email: loginForm.email.trim() });
+      try { sessionStorage.setItem("entrelinhas.loggedIn", "true"); } catch {}
+      setLoggedIn(true);
+    } catch (error) {
+      setLoginError(error.message?.replace(/e-?mail/gi, "usuário") || "Usuário ou senha incorretos.");
+    } finally {
+      setLoginPending(false);
     }
-    try { sessionStorage.setItem("entrelinhas.loggedIn", "true"); } catch {}
-    setLoginError(""); setLoggedIn(true);
   }
 
   function logout() {
@@ -381,8 +388,8 @@ function App() {
           <label>Usuário<input type="text" autoFocus value={loginForm.email} onChange={e=>setLoginForm({...loginForm,email:e.target.value})} placeholder="Digite o nome do usuário"/></label>
           <label>Senha<input type="password" value={loginForm.password} onChange={e=>setLoginForm({...loginForm,password:e.target.value})} placeholder="Digite sua senha"/></label>
           {loginError && <div className="login-error">{loginError}</div>}
-          <button className="primary login-button" type="submit" disabled={loadingData}><LogIn size={18}/> Entrar</button>
-          <p className="login-hint">Protótipo front-end: qualquer usuário e senha preenchidos permitem o acesso.</p>
+          <button className="primary login-button" type="submit" disabled={loginPending}><LogIn size={18}/> {loginPending ? "Conectando..." : "Entrar"}</button>
+          <p className="login-hint">Entre com o usuário e a senha cadastrados no backend.</p>
           <div className="login-flourish" aria-hidden="true"><Flower2 size={17}/><BookOpen size={20}/><Coffee size={18}/></div>
         </form>
       </div>
@@ -432,6 +439,7 @@ function App() {
       </aside>
 
       <main className="main">
+        {!loadingData && !apiOnline && <div className="login-error" role="alert">{apiMessage}</div>}
         <header className="topbar">
           <button className="mobile-toggle" onClick={() => setMobileMenu(!mobileMenu)}><Menu/></button>
           <div>

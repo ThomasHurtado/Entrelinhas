@@ -1,17 +1,26 @@
-const API_URL = (import.meta.env?.VITE_API_URL || "http://localhost:3001/api").replace(/\/$/, "");
+const API_URL = (import.meta.env?.VITE_API_URL?.trim() || "http://localhost:3001/api").replace(/\/+$/, "");
 
 async function request(path, options = {}) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 3500);
+  const timeout = setTimeout(() => controller.abort(), 15000);
   try {
     const response = await fetch(`${API_URL}${path}`, {
-      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
       ...options,
+      headers: { ...(options.body ? { "Content-Type": "application/json" } : {}), ...(options.headers || {}) },
       signal: controller.signal
     });
-    const data = await response.json().catch(() => null);
+    const body = await response.text();
+    let data = null;
+    try { data = body ? JSON.parse(body) : null; }
+    catch {
+      throw new Error(`Resposta inválida da API em ${API_URL}${path} (HTTP ${response.status}). Verifique VITE_API_URL e a rota do backend.`);
+    }
     if (!response.ok) throw new Error(data?.message || `Erro HTTP ${response.status}`);
     return data;
+  } catch (error) {
+    if (error.name === "AbortError") throw new Error(`O backend em ${API_URL} não respondeu em 15 segundos. Tente novamente.`);
+    if (error instanceof TypeError) throw new Error(`Não foi possível conectar ao backend em ${API_URL}. Verifique se o servidor está ativo, a URL e o CORS. (${error.message})`);
+    throw error;
   } finally {
     clearTimeout(timeout);
   }

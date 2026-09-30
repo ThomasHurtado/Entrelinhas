@@ -10,14 +10,16 @@ Frontend React + Vite do clube do livro Entrelinhas.
 Por padrão o frontend procura a API em `http://localhost:3001/api`.
 
 ## Proteção contra backend vazio/desligado
-Ao abrir, o frontend inicia com listas vazias enquanto consulta a API, sem avisos de carregamento ou conexão. Não há participantes ou encontros de demonstração. Se o carregamento falhar, as listas permanecem vazias; operações feitas nesse modo ficam somente no navegador até recarregar a página.
+Após o login, o frontend inicia com listas vazias enquanto consulta a API. Não há participantes ou encontros de demonstração. Se o carregamento falhar, exibe o erro e as listas permanecem vazias; operações feitas nesse modo ficam somente no navegador até recarregar a página.
 
 Quando a API estiver disponível, os dados do MongoDB substituem os dados locais. Um banco vazio é válido e mostrará listas vazias.
 
 ## Login
 Com backend conectado, o login é validado pela API. Execute `npm run seed` no backend para criar o administrador configurado no `.env` do backend.
 
-Sem backend disponível, o frontend permite o acesso em modo local para que o desenvolvimento da interface não fique bloqueado.
+O login sempre consulta a API. Se o backend estiver indisponível, a tela exibe o erro e permite tentar novamente, sem liberar acesso local automaticamente.
+
+Configure `VITE_API_URL` no `.env` com a URL completa da API, incluindo `/api`, e reinicie `npm run dev`. Para um backend publicado, use `https://SEU-BACKEND.vercel.app/api`. No backend, configure `FRONTEND_URL` com a origem exata do frontend para permitir CORS. Em produção, alterações de `VITE_API_URL` exigem um novo build/deploy.
 
 ## Novos recursos
 - Saldo do clube na Visão Geral, sincronizado por `/api/finance`.

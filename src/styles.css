@@ -198,12 +198,6 @@ td { padding:13px 20px;border-top:1px solid var(--line);font-size:11px;color:#62
 .logout-mini:hover { color:var(--purple-dark);background:#f2eeff; }
 
 /* Calendário */
-.calendar-tabs { display:flex;gap:8px;margin-bottom:18px; }
-.calendar-tabs button { padding:10px 16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font-weight:600; }
-.calendar-tabs button.active { background:var(--purple-light);border-color:var(--purple);color:var(--purple-dark); }
-.calendar-tabs button:focus-visible { outline:2px solid var(--purple);outline-offset:3px; }
-.calendar-layout.birthdays-layout { grid-template-columns:minmax(0,1fr); }
-.birthday-list h4 { margin:0 0 18px;color:var(--ink); }
 .birthday-list ul { list-style:none;margin:0;padding:0; }
 .birthday-row { display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 0;border-top:1px solid var(--line); }
 .birthday-row .person { min-width:0;overflow-wrap:anywhere; }
@@ -392,6 +386,25 @@ td { padding:13px 20px;border-top:1px solid var(--line);font-size:11px;color:#62
   }
 }
 .participant-actions,.meeting-actions { display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
+.dashboard-highlights { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:20px; }
+.dashboard-highlights > .panel { min-width:0; }
+.dashboard-highlights .finance-panel { flex-direction:column;align-items:stretch;justify-content:center;margin-bottom:0; }
+.dashboard-highlights .finance-icon { flex-shrink:0; }
+.dashboard-highlights .finance-value { flex-wrap:wrap;justify-content:space-between; }
+.dashboard-highlights .balance-editor { flex-wrap:wrap; }
+.birthday-panel { border-top:3px solid var(--purple-light); }
+.birthday-flower { color:var(--purple);flex-shrink:0; }
+.birthday-month-nav { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px; }
+.birthday-month-nav > span { text-transform:capitalize;font-size:13px;color:var(--purple-dark);font-weight:600;text-align:center; }
+.birthday-month-nav button:focus-visible { outline:2px solid var(--purple);outline-offset:3px; }
+.birthday-panel .dashboard-scroll-list { max-height:190px; }
+.birthday-panel .empty { padding:22px 8px; }
+@media(max-width:1100px) and (min-width:761px) {
+  .dashboard-highlights .finance-value { align-items:flex-start;flex-direction:column; }
+  .dashboard-highlights .balance-editor { width:100%; }
+  .dashboard-highlights .balance-editor input { min-width:0;max-width:100%; }
+}
+@media(max-width:760px) { .dashboard-highlights { grid-template-columns:1fr; } }
 .action-error { margin:16px 24px;padding:12px;border-radius:8px;color:var(--red);background:var(--red-bg); }
 
 /* Pequenos detalhes do nosso cantinho de leitura. */
@@ -440,3 +453,39 @@ td { padding:13px 20px;border-top:1px solid var(--line);font-size:11px;color:#62
   .sidebar { min-height:100vh;height:auto; }
 }
 @media(max-width:400px) { .topbar-flourish > svg:not(:nth-of-type(2)) { display:none; } }
+
+/* Caderno: papel pautado, espiral e os detalhes do clube. */
+.notebook-toolbar,.notebook-bottom { display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap; }
+.notebook-toolbar { margin-bottom:20px; }
+.notebook-page-picker { display:flex;align-items:center;gap:10px;color:var(--purple-dark);font-size:12px;min-width:0; }
+.notebook-page-picker select { width:240px;max-width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;color:var(--ink);font:inherit; }
+.notebook-paper { position:relative;padding:32px 32px 18px 72px;border:1px solid #e5ddef;border-radius:8px 20px 20px 8px;background:#fffdf8;box-shadow:4px 5px 0 #f0eaf7,7px 8px 0 #e7dff0,0 15px 35px #6344e70a; }
+.notebook-paper::before { content:"";position:absolute;top:0;bottom:0;left:55px;width:1px;background:#dcc4dc;pointer-events:none; }
+.notebook-binding { position:absolute;top:24px;bottom:24px;left:-9px;width:30px;background:radial-gradient(ellipse at center,#fffdf8 0 20%,#a99abe 23% 34%,transparent 38%) 0 0 / 30px 38px repeat-y;pointer-events:none; }
+.notebook-paper .note-bow { top:22px;right:25px; }
+.notebook-heading { padding-right:60px;margin-bottom:20px; }
+.notebook-heading label { display:block;margin-bottom:8px; }
+.notebook-heading input { display:block;width:100%;border:0;border-bottom:1px solid transparent;padding:6px 0;background:transparent;font-family:"Playfair Display",serif;font-size:25px;color:var(--ink);border-radius:0; }
+.notebook-heading input::placeholder { color:#a19aaa; }
+.notebook-writing { display:block;width:100%;min-height:480px;resize:vertical;border:0;border-radius:0;padding:0 8px;font-family:"Playfair Display",Georgia,serif;font-size:17px;font-weight:400;line-height:32px;color:#51465d;background:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,#e6deed 31px,#e6deed 32px);background-attachment:local; }
+.notebook-writing::placeholder { color:#a198aa; }
+.notebook-writing:focus-visible,.notebook-heading input:focus-visible { outline:2px solid #b9aaff;outline-offset:4px; }
+.notebook-page-picker select:focus-visible,.notebook-content button:focus-visible { outline:2px solid var(--purple);outline-offset:3px; }
+.notebook-paper-footer { display:flex;justify-content:space-between;gap:10px;margin-top:20px;font-size:11px;color:var(--muted); }
+.notebook-bottom { margin-top:26px; }
+.notebook-pagination { display:flex;align-items:center;gap:12px;font-size:12px;color:var(--muted); }
+.notebook-pagination button:disabled { opacity:.35;cursor:default; }
+.notebook-content button:disabled { opacity:.5;cursor:not-allowed; }
+.notebook-save-status { display:flex;align-items:center;justify-content:center;gap:6px;margin:20px 0 0;font-size:11px;color:var(--muted);line-height:1.6;text-align:center; }
+.notebook-save-status.has-error { color:var(--red); }
+@media(max-width:560px) {
+  .notebook-page-picker { width:100%; }
+  .notebook-page-picker select { flex:1; }
+  .notebook-paper { padding:26px 16px 16px 38px; }
+  .notebook-paper::before { left:28px; }
+  .notebook-binding { width:24px;background-size:24px 38px; }
+  .notebook-heading { padding-right:32px; }
+  .notebook-heading input { font-size:20px; }
+  .notebook-paper .note-bow { width:36px;right:12px;top:12px; }
+  .notebook-writing { font-size:16px;min-height:384px; }
+}

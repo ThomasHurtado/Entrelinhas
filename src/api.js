@@ -1,4 +1,4 @@
-const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3001/api").replace(/\/$/, "");
+const API_URL = (import.meta.env?.VITE_API_URL || "http://localhost:3001/api").replace(/\/$/, "");
 
 async function request(path, options = {}) {
   const controller = new AbortController();
@@ -20,6 +20,12 @@ async function request(path, options = {}) {
 export const api = {
   health: () => request("/health"),
   login: (credentials) => request("/auth/login", { method: "POST", body: JSON.stringify(credentials) }),
+  notebook: {
+    list: () => request("/notebook/pages"),
+    create: (body) => request("/notebook/pages", { method: "POST", body: JSON.stringify(body) }),
+    update: (id, body) => request(`/notebook/pages/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(body) }),
+    remove: (id) => request(`/notebook/pages/${encodeURIComponent(id)}`, { method: "DELETE" })
+  },
   participants: {
     list: () => request("/participants"),
     create: (body) => request("/participants", { method: "POST", body: JSON.stringify(body) }),

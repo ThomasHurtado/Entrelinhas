@@ -23,3 +23,4 @@ Sem backend disponível, o frontend permite o acesso em modo local para que o de
 - Saldo do clube na Visão Geral, sincronizado por `/api/finance`.
 - Página Ideias com cadastro, autor e status Aceito/Não aceito, sincronizada por `/api/ideas`.
 - Os novos recursos mantêm fallback local quando a API está indisponível.
+- Caderno com páginas pautadas, títulos, criação, exclusão e navegação entre páginas, integrado a `/api/notebook/pages`. Salva automaticamente no servidor após uma pausa na digitação. Em caso de falha, preserva o texto aberto e oferece nova tentativa, sem indicar sucesso antes da resposta da API. Contrato das rotas em `BACKEND.md`. As páginas da versão local anterior permanecem no navegador, mas não são importadas automaticamente.

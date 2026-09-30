@@ -7,6 +7,7 @@ import {
   ChevronLeft, ChevronRight as ChevronRightIcon, LogIn, LogOut, Save, StickyNote, Lightbulb, Wallet, CircleDollarSign
 } from "lucide-react";
 import "./styles.css";
+import Notebook from "./Notebook.jsx";
 import { api } from "./api.js";
 import { birthdaysInMonth, normalizeBirthDate } from "./birthdays.js";
 
@@ -85,7 +86,7 @@ function App() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-  const [calendarTab, setCalendarTab] = useState("notes");
+  const [birthdayMonth, setBirthdayMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [calendarMonth, setCalendarMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDay, setSelectedDay] = useState(`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`);
   const [notes, setNotes] = useState({});
@@ -155,7 +156,7 @@ function App() {
     () => participants.filter(p => p.name.toLowerCase().includes(search.toLowerCase())),
     [participants, search]
   );
-  const monthBirthdays = birthdaysInMonth(participants, calendarMonth.getMonth() + 1);
+  const monthBirthdays = birthdaysInMonth(participants, birthdayMonth.getMonth() + 1);
 
   async function toggleAttendance(id) {
     if (!currentMeeting) return;
@@ -393,7 +394,8 @@ function App() {
     ["participants", "Participantes", Users],
     ["attendance", "Encontros", CalendarCheck],
     ["calendar", "Calendário", CalendarDays],
-    ["ideas", "Ideias", Lightbulb]
+    ["ideas", "Ideias", Lightbulb],
+    ["notebook", "Caderno", BookOpen]
   ];
 
   return (
@@ -434,11 +436,15 @@ function App() {
           <button className="mobile-toggle" onClick={() => setMobileMenu(!mobileMenu)}><Menu/></button>
           <div>
             <p className="eyebrow">CLUBE DO LIVRO</p>
-            <h1>{page === "dashboard" ? "Visão geral" : page === "participants" ? "Participantes" : page === "attendance" ? "Controle de presença" : page === "calendar" ? "Calendário" : "Ideias"}</h1>
+            <h1>{page === "dashboard" ? "Visão geral" : page === "participants" ? "Participantes" : page === "attendance" ? "Controle de presença" : page === "calendar" ? "Calendário" : page === "notebook" ? "Caderno" : "Ideias"}</h1>
           </div>
           <div className="topbar-flourish" aria-hidden="true"><Flower2/><span/><Bow/><span/><Coffee/></div>
         </header>
         {actionError && !editingParticipant && <div className="action-error" role="alert">{actionError}</div>}
+
+        <div hidden={page !== "notebook"}>
+          <Notebook decoration={<ReadingDecoration className="welcome-reading"/>} bow={<Bow className="note-bow"/>}/>
+        </div>
 
         {page === "dashboard" && (
           <section className="content">
@@ -451,6 +457,7 @@ function App() {
               <ReadingDecoration className="welcome-reading"/>
             </div>
 
+            <div className="dashboard-highlights">
             <div className="panel finance-panel">
               <div className="finance-main">
                 <div className="finance-icon"><Wallet size={24}/></div>
@@ -460,6 +467,25 @@ function App() {
                 {editingBalance ? <div className="balance-editor"><span>R$</span><input type="number" min="0" step="0.01" value={balanceDraft} onChange={e=>setBalanceDraft(e.target.value)}/><button className="primary" onClick={saveBalance}><Save size={16}/> Salvar</button></div>
                 : <><strong>{clubBalance.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</strong><button className="secondary" onClick={()=>{setBalanceDraft(String(clubBalance));setEditingBalance(true)}}>Atualizar saldo</button></>}
               </div>
+            </div>
+
+            <section className="panel birthday-panel" aria-labelledby="birthday-heading">
+              <div className="panel-head">
+                <div><p className="eyebrow">DATAS PARA CELEBRAR</p><h3 id="birthday-heading">Aniversariantes do mês ({monthBirthdays.length})</h3></div>
+                <Flower2 size={26} className="birthday-flower" aria-hidden="true"/>
+              </div>
+              <div className="birthday-month-nav">
+                <button className="calendar-nav" aria-label="Mês anterior dos aniversariantes" onClick={() => setBirthdayMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}><ChevronLeft size={18}/></button>
+                <span aria-live="polite">{birthdayMonth.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</span>
+                <button className="calendar-nav" aria-label="Próximo mês dos aniversariantes" onClick={() => setBirthdayMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}><ChevronRightIcon size={18}/></button>
+              </div>
+              <div className="birthday-list dashboard-scroll-list" role="region" aria-label="Lista de aniversariantes" tabIndex={0}>
+                {monthBirthdays.length === 0 ? <div className="empty">Nenhum aniversariante cadastrado neste mês.</div> : <ul>{monthBirthdays.map(p => <li className="birthday-row" key={p.id}>
+                  <div className="person"><Avatar name={p.name} size="small"/><b>{p.name}</b></div>
+                  <span className="birthday-date">{formatDate(p.birthDate).slice(0, 5)}</span>
+                </li>)}</ul>}
+              </div>
+            </section>
             </div>
 
             <div className="stats-grid">
@@ -587,13 +613,9 @@ function App() {
         {page === "calendar" && (
           <section className="content">
             <div className="page-intro">
-              <div><h2>Calendário</h2><p>Consulte as anotações e os aniversariantes de cada mês.</p></div>
+              <div><h2>Calendário</h2><p>Consulte e organize as anotações de cada mês.</p></div>
             </div>
-            <div className="calendar-tabs" role="group" aria-label="Visualização do calendário">
-              <button className={calendarTab === "notes" ? "active" : ""} aria-pressed={calendarTab === "notes"} onClick={()=>setCalendarTab("notes")}>Anotações</button>
-              <button className={calendarTab === "birthdays" ? "active" : ""} aria-pressed={calendarTab === "birthdays"} onClick={()=>setCalendarTab("birthdays")}>Aniversariantes</button>
-            </div>
-            <div className={`calendar-layout ${calendarTab === "birthdays" ? "birthdays-layout" : ""}`}>
+            <div className="calendar-layout">
               <div className="panel calendar-panel">
                 <div className="calendar-head">
                   <button className="calendar-nav" aria-label="Mês anterior" onClick={()=>changeMonth(-1)}><ChevronLeft size={20}/></button>
@@ -603,17 +625,6 @@ function App() {
                   </div>
                   <button className="calendar-nav" aria-label="Próximo mês" onClick={()=>changeMonth(1)}><ChevronRightIcon size={20}/></button>
                 </div>
-                {calendarTab === "birthdays" ? (
-                  <div className="birthday-list">
-                    <h4>Aniversariantes do mês ({monthBirthdays.length})</h4>
-                    {monthBirthdays.length === 0 ? <div className="empty">Nenhum aniversariante cadastrado neste mês.</div> : (
-                      <ul>{monthBirthdays.map(p => <li className="birthday-row" key={p.id}>
-                        <div className="person"><Avatar name={p.name}/><b>{p.name}</b></div>
-                        <span className="birthday-date">{formatDate(p.birthDate).slice(0, 5)}</span>
-                      </li>)}</ul>
-                    )}
-                  </div>
-                ) : <>
                 <div className="weekdays">
                   {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d=><span key={d}>{d}</span>)}
                 </div>
@@ -625,10 +636,9 @@ function App() {
                     </button>
                   ) : <div className="calendar-day empty-day" key={`empty-${index}`}/>)}
                 </div>
-                </>}
               </div>
 
-              {calendarTab === "notes" && <div className="panel note-panel">
+              <div className="panel note-panel">
                 <Bow className="note-bow"/>
                 <div className="note-icon"><StickyNote size={21}/></div>
                 <p className="eyebrow">ANOTAÇÃO DO DIA</p>
@@ -639,7 +649,7 @@ function App() {
                   <span>{noteDraft.length} caracteres</span>
                   <button className="primary" onClick={saveNote}><Save size={17}/> Salvar anotação</button>
                 </div>
-              </div>}
+              </div>
             </div>
           </section>
         )}
